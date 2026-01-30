@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; }
+        .header { background-color: #2c3e50; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+        .content { background-color: white; padding: 20px; border-radius: 0 0 5px 5px; }
+        .button { display: inline-block; background-color: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 15px; }
+        .footer { text-align: center; color: #999; font-size: 12px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 KHWAISH</h1>
+            <p>Lead Follow-Up Automation</p>
+        </div>
+
+        <div class="content">
+            <h2>Thanks for reaching out, {{ lead.name }}!</h2>
+
+            <p>We've received your inquiry and we're excited to connect with you. Our team is reviewing your information and will be in touch shortly.</p>
+
+            <p><strong>What's next?</strong></p>
+            <ul>
+                <li>We'll follow up with you within the next few days.</li>
+                <li>If you have any urgent questions, feel free to reply to this email.</li>
+                <li>You can also mark your interest below to expedite the process.</li>
+            </ul>
+
+            <p>
+                <a href="{{ reply_link }}" class="button">Yes, I'm Interested!</a>
+            </p>
+
+            <p>Best regards,<br>
+            The KHWAISH Team</p>
+        </div>
+
+        <div class="footer">
+            <p>&copy; {{ current_year }} KHWAISH. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

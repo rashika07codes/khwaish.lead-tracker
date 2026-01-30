@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}Lead Detail - {{ lead.name }}{% endblock %}
+
+{% block content %}
+<div class="lead-detail">
+    <div class="lead-header">
+        <h1>{{ lead.name }}</h1>
+        <a href="/" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+
+    <!-- Lead Information -->
+    <div class="lead-info-section">
+        <div class="info-card">
+            <h3>Lead Information</h3>
+            <table class="info-table">
+                <tr>
+                    <td><strong>ID:</strong></td>
+                    <td>#{{ lead.id }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Email:</strong></td>
+                    <td><a href="mailto:{{ lead.email }}">{{ lead.email }}</a></td>
+                </tr>
+                <tr>
+                    <td><strong>Phone:</strong></td>
+                    <td>{{ lead.phone or 'N/A' }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Source:</strong></td>
+                    <td>{{ lead.source }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Status:</strong></td>
+                    <td>
+                        <span class="status-badge status-{{ lead.status.value.lower() }}">
+                            {{ lead.status }}
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Message:</strong></td>
+                    <td>{{ lead.message or 'N/A' }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Lead Timeline -->
+        <div class="timeline-card">
+            <h3>Timeline</h3>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-marker">📅</div>
+                    <div class="timeline-content">
+                        <strong>Lead Created</strong>
+                        <p>{{ lead.created_at.strftime('%Y-%m-%d %H:%M:%S') if lead.created_at else 'N/A' }}</p>
+                    </div>
+                </div>
+
+                {% if lead.first_contact_at %}
+                <div class="timeline-item">
+                    <div class="timeline-marker">📧</div>
+                    <div class="timeline-content">
+                        <strong>First Contact</strong>
+                        <p>{{ lead.first_contact_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if lead.email_sent_at %}
+                <div class="timeline-item">
+                    <div class="timeline-marker">✉️</div>
+                    <div class="timeline-content">
+                        <strong>Email Sent</strong>
+                        <p>{{ lead.email_sent_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if lead.whatsapp_sent_at %}
+                <div class="timeline-item">
+                    <div class="timeline-marker">💬</div>
+                    <div class="timeline-content">
+                        <strong>WhatsApp Sent</strong>
+                        <p>{{ lead.whatsapp_sent_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if lead.replied_at %}
+                <div class="timeline-item">
+                    <div class="timeline-marker">💌</div>
+                    <div class="timeline-content">
+                        <strong>Lead Replied</strong>
+                        <p>{{ lead.replied_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if lead.reminder_sent_at %}
+                <div class="timeline-item">
+                    <div class="timeline-marker">🔔</div>
+                    <div class="timeline-content">
+                        <strong>Reminder Sent</strong>
+                        <p>{{ lead.reminder_sent_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Logs -->
+    <div class="messages-section">
+        <h3>Message Logs</h3>
+        {% if messages %}
+        <table class="messages-table">
+            <thead>
+                <tr>
+                    <th>Channel</th>
+                    <th>Kind</th>
+                    <th>Sent At</th>
+                    <th>Status</th>
+                    <th>Response</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for msg in messages %}
+                <tr>
+                    <td>{{ msg.channel }}</td>
+                    <td>{{ msg.kind }}</td>
+                    <td>{{ msg.sent_at.strftime('%Y-%m-%d %H:%M:%S') if msg.sent_at else 'N/A' }}</td>
+                    <td>
+                        <span class="status-badge {% if msg.success %}status-success{% else %}status-failed{% endif %}">
+                            {% if msg.success %}Success{% else %}Failed{% endif %}
+                        </span>
+                    </td>
+                    <td>{{ msg.provider_response or 'N/A' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No messages logged yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Manual Actions -->
+    <div class="actions-section">
+        <h3>Manual Actions</h3>
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="markAsReplied()">Mark as Replied</button>
+            <button class="btn btn-info" onclick="sendReminder()">Send Reminder</button>
+            <button class="btn btn-success" onclick="updateStatus('WON')">Mark as Won</button>
+            <button class="btn btn-danger" onclick="updateStatus('LOST')">Mark as Lost</button>
+            <button class="btn btn-warning" onclick="updateStatus('IN_PROGRESS')">Mark as In Progress</button>
+        </div>
+    </div>
+
+    <!-- Notes Section -->
+    <div class="notes-section">
+        <h3>Notes</h3>
+        <textarea id="notesTextarea" rows="4" placeholder="Add notes about this lead...">{{ lead.notes or '' }}</textarea>
+        <button class="btn btn-primary" onclick="saveNotes()">Save Notes</button>
+    </div>
+</div>
+
+<script>
+async function markAsReplied() {
+    try {
+        const response = await fetch('/api/leads/{{ lead.id }}/mark-replied', {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            alert('Lead marked as replied!');
+            location.reload();
+        } else {
+            alert('Error marking lead as replied');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error marking lead as replied');
+    }
+}
+
+async function sendReminder() {
+    try {
+        const response = await fetch('/api/leads/{{ lead.id }}/send-reminder', {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            alert('Reminder sent successfully!');
+            location.reload();
+        } else {
+            alert('Error sending reminder');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error sending reminder');
+    }
+}
+
+async function updateStatus(status) {
+    try {
+        const response = await fetch('/api/leads/{{ lead.id }}/update-status', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: status })
+        });
+        
+        if (response.ok) {
+            alert(`Lead status updated to ${status}!`);
+            location.reload();
+        } else {
+            alert('Error updating lead status');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error updating lead status');
+    }
+}
+
+function saveNotes() {
+    alert('Notes feature coming soon!');
+    // In a real app, you would send the notes to the backend
+}
+</script>
+{% endblock %}

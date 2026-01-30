@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; }
+        .header { background-color: #e74c3c; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+        .content { background-color: white; padding: 20px; border-radius: 0 0 5px 5px; }
+        .button { display: inline-block; background-color: #e74c3c; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 15px; }
+        .footer { text-align: center; color: #999; font-size: 12px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔔 Quick Follow-Up</h1>
+            <p>KHWAISH Lead Follow-Up Automation</p>
+        </div>
+
+        <div class="content">
+            <h2>Hi {{ lead.name }},</h2>
+
+            <p>We wanted to check in and see if you're still interested in learning more about our services. We haven't heard back from you yet, and we'd love to connect!</p>
+
+            <p><strong>Why reach out now?</strong></p>
+            <ul>
+                <li>We have some exciting updates that might interest you.</li>
+                <li>Our team is ready to answer any questions you might have.</li>
+                <li>This is a great time to move forward if you're interested.</li>
+            </ul>
+
+            <p>If you're interested, please click the button below or reply to this email. If now isn't a good time, just let us know!</p>
+
+            <p>
+                <a href="{{ reply_link }}" class="button">Yes, I'm Interested!</a>
+            </p>
+
+            <p>Best regards,<br>
+            The KHWAISH Team</p>
+        </div>
+
+        <div class="footer">
+            <p>&copy; {{ current_year }} KHWAISH. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - KHWAISH{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h1>Lead Follow-Up Dashboard</h1>
+
+    <!-- KPIs Section -->
+    <div class="kpis-section">
+        <div class="kpi-card">
+            <div class="kpi-value">{{ kpis.total_leads }}</div>
+            <div class="kpi-label">Total Leads</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">{{ kpis.contacted }}</div>
+            <div class="kpi-label">Contacted</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">{{ kpis.replied }}</div>
+            <div class="kpi-label">Replied</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">{{ kpis.reminders_sent }}</div>
+            <div class="kpi-label">Reminders Sent</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">{{ kpis.won }}</div>
+            <div class="kpi-label">Won</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">{{ kpis.conversion_rate }}</div>
+            <div class="kpi-label">Conversion Rate</div>
+        </div>
+    </div>
+
+    <!-- Leads Table Section -->
+    <div class="leads-section">
+        <div class="section-header">
+            <h2>Recent Leads</h2>
+            <button class="btn btn-primary" onclick="openImportModal()">Import CSV</button>
+            <button class="btn btn-secondary" onclick="openNewLeadModal()">Add Lead</button>
+        </div>
+
+        <table class="leads-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Source</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lead in leads %}
+                <tr>
+                    <td>#{{ lead.id }}</td>
+                    <td>{{ lead.name }}</td>
+                    <td>{{ lead.email }}</td>
+                    <td>{{ lead.phone or 'N/A' }}</td>
+                    <td>{{ lead.source }}</td>
+                    <td>
+                        <span class="status-badge status-{{ lead.status.value.lower() }}">
+                            {{ lead.status }}
+                        </span>
+                    </td>
+                    <td>{{ lead.created_at.strftime('%Y-%m-%d %H:%M') if lead.created_at else 'N/A' }}</td>
+                    <td>
+                        <a href="/lead/{{ lead.id }}" class="btn btn-sm btn-info">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Import CSV Modal -->
+<div id="importModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeImportModal()">&times;</span>
+        <h2>Import Leads from CSV</h2>
+        <form id="importForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="csvFile">Select CSV File:</label>
+                <input type="file" id="csvFile" name="file" accept=".csv" required>
+                <small>Format: name,email,phone,source,message (header row required)</small>
+            </div>
+            <button type="submit" class="btn btn-primary">Import</button>
+        </form>
+    </div>
+</div>
+
+<!-- New Lead Modal -->
+<div id="newLeadModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeNewLeadModal()">&times;</span>
+        <h2>Add New Lead</h2>
+        <form id="newLeadForm">
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone:</label>
+                <input type="tel" id="phone" name="phone">
+            </div>
+            <div class="form-group">
+                <label for="source">Source:</label>
+                <select id="source" name="source" required>
+                    <option value="">Select a source</option>
+                    <option value="facebook">Facebook</option>
+                    <option value="website">Website</option>
+                    <option value="referral">Referral</option>
+                    <option value="email">Email</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="message">Message:</label>
+                <textarea id="message" name="message" rows="4"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Create Lead</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function openImportModal() {
+    document.getElementById('importModal').style.display = 'block';
+}
+
+function closeImportModal() {
+    document.getElementById('importModal').style.display = 'none';
+}
+
+function openNewLeadModal() {
+    document.getElementById('newLeadModal').style.display = 'block';
+}
+
+function closeNewLeadModal() {
+    document.getElementById('newLeadModal').style.display = 'none';
+}
+
+document.getElementById('importForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(document.getElementById('importForm'));
+    
+    try {
+        const response = await fetch('/api/leads/import-csv', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.ok) {
+            alert('Leads imported successfully!');
+            closeImportModal();
+            location.reload();
+        } else {
+            alert('Error importing leads');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error importing leads');
+    }
+});
+
+document.getElementById('newLeadForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        source: document.getElementById('source').value,
+        message: document.getElementById('message').value
+    };
+    
+    try {
+        const response = await fetch('/api/leads', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        if (response.ok) {
+            alert('Lead created successfully!');
+            closeNewLeadModal();
+            location.reload();
+        } else {
+            alert('Error creating lead');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error creating lead');
+    }
+});
+
+// Close modal when clicking outside of it
+window.onclick = function(event) {
+    const importModal = document.getElementById('importModal');
+    const newLeadModal = document.getElementById('newLeadModal');
+    
+    if (event.target === importModal) {
+        importModal.style.display = 'none';
+    }
+    if (event.target === newLeadModal) {
+        newLeadModal.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}
